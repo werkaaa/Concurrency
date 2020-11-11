@@ -1,13 +1,15 @@
-package lab5;
+package lab5.hasWaiters;
 
 
 public class Consumer implements Runnable{
     private Buffer buffer;
-    private int bufferSize;
+    private int maxConsumed;
+    private int id;
 
-    public Consumer(Buffer buffer, int bufferSize){
+    public Consumer(int id, Buffer buffer, int maxConsumed){
+        this.id = id;
         this.buffer = buffer;
-        this.bufferSize = bufferSize;
+        this.maxConsumed = maxConsumed;
     }
 
     private int getRandom(int max){
@@ -19,8 +21,8 @@ public class Consumer implements Runnable{
     @Override
     public void run() {
         while(true) {
-            int howMany = this.getRandom(this.bufferSize);
-            buffer.consume(howMany);
+            int howMany = this.getRandom(this.maxConsumed);
+            buffer.consume(howMany, this.id);
         }
     }
 }

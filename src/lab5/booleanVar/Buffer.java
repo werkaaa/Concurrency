@@ -1,4 +1,4 @@
-package lab5;
+package lab5.booleanVar;
 
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -16,6 +16,9 @@ public class Buffer {
     final Condition restConsumers = lock.newCondition();
     final Condition firstConsumer = lock.newCondition();
     final Condition firstProducer = lock.newCondition();
+
+    boolean firstProducerPresent = false;
+    boolean firstConsumerPresent = false;
 
     int restProducersCount = 0;
     int restConsumersCount = 0;
@@ -46,10 +49,11 @@ public class Buffer {
                           "________________________________________\n");
     }
 
-    public void produce(int element, int howMany){
+    public void produce(int element, int howMany, int id){
         lock.lock();
+        System.out.printf("P_" + id + " wants to work\n");
         try {
-            while (lock.hasWaiters(firstProducer)){
+            while (firstProducerPresent){
                 try {
                     restProducersCount += 1;
                     this.printState();
@@ -62,7 +66,9 @@ public class Buffer {
                 try {
                     firstProducerCount += 1;
                     this.printState();
+                    firstProducerPresent = true;
                     firstProducer.await();
+                    firstProducerPresent = false;
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -72,7 +78,8 @@ public class Buffer {
                 this.ptrInsert = (this.ptrInsert + 1) % this.maxSize;
                 this.size += 1;
             }
-            System.out.printf("Produced " + howMany + " elements. Buffer state:" + this.size + "/" + this.maxSize + "\n");
+            System.out.printf("P_" + id + " produced " + howMany +
+                              " elements. Buffer state:" + this.size + "/" + this.maxSize + "\n");
             restProducers.signal();
             if (restProducersCount > 0) {
                 restProducersCount -= 1;
@@ -88,10 +95,11 @@ public class Buffer {
         }
     }
 
-    public void consume(int howMany){
+    public void consume(int howMany, int id){
         lock.lock();
+        System.out.printf("C_" + id + " wants to consume\n");
         try {
-            while(lock.hasWaiters(firstConsumer)){
+            while(firstConsumerPresent){
                 try {
                     restConsumersCount += 1;
                     this.printState();
@@ -104,7 +112,9 @@ public class Buffer {
                 try {
                     firstConsumerCount += 1;
                     this.printState();
+                    firstConsumerPresent = true;
                     firstConsumer.await();
+                    firstConsumerPresent = false;
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -114,7 +124,8 @@ public class Buffer {
                 this.ptrGet = (this.ptrGet + 1) % this.maxSize;
                 this.size -= 1;
             }
-            System.out.printf("Consumed " + howMany + " elements. Buffer state:" + this.size + "/" + this.maxSize + "\n");
+            System.out.printf("C_" + id + " consumed " + howMany +
+                              " elements. Buffer state: " + this.size + "/" + this.maxSize + "\n");
             restConsumers.signal();
             if (restConsumersCount > 0) {
                 restConsumersCount -= 1;

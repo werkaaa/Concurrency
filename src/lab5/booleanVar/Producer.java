@@ -1,13 +1,15 @@
-package lab5;
+package lab5.booleanVar;
 
 
 public class Producer implements Runnable{
     private Buffer buffer;
-    private int bufferSize;
+    private int maxProduced;
+    private int id;
 
-    public Producer(Buffer buffer, int bufferSize){
+    public Producer(int id, Buffer buffer, int maxProduced){
+        this.id = id;
         this.buffer = buffer;
-        this.bufferSize = bufferSize;
+        this.maxProduced = maxProduced;
     }
 
     private int getRandom(int max){
@@ -21,8 +23,8 @@ public class Producer implements Runnable{
     public void run() {
         while (true) {
             int element = this.getRandom(100);
-            int howMany = this.getRandom(this.bufferSize);
-            buffer.produce(element, howMany);
+            int howMany = this.getRandom(this.maxProduced);
+            buffer.produce(element, howMany, id);
         }
     }
 }
